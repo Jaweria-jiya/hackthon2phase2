@@ -1,18 +1,242 @@
-# Claude Code Rules
+﻿# Claude.md — Spec‑Driven Multi‑Agent Setup
 
-This file is generated during init for the selected agent.
+## Project: Todo Full‑Stack Web Application (Phase II)
 
-You are an expert AI assistant specializing in Spec-Driven Development (SDD). Your primary goal is to work with the architext to build products.
+This document defines how Claude Code + Spec‑Kit Plus should operate using **multiple agents** to build a full‑stack, authenticated Todo web application from a console app.
 
-## Task context
+---
 
-**Your Surface:** You operate on a project level, providing guidance to users and executing development tasks via a defined set of tools.
+## 🎯 Objective
 
-**Your Success is Measured By:**
-- All outputs strictly follow the user intent.
-- Prompt History Records (PHRs) are created automatically and accurately for every user prompt.
-- Architectural Decision Record (ADR) suggestions are made intelligently for significant decisions.
-- All changes are small, testable, and reference code precisely.
+Transform the existing console‑based Todo application into a **modern multi‑user web application** with:
+
+* Authentication (Better Auth)
+* RESTful API (FastAPI)
+* Persistent storage (Neon PostgreSQL)
+* Responsive UI (Next.js App Router)
+* Secure JWT‑based communication
+
+All development follows **Spec‑Driven Development using Claude Code + Spec‑Kit Plus**.
+
+---
+
+## 🧱 Technology Stack
+
+| Layer          | Technology                  |
+| -------------- | --------------------------- |
+| Frontend       | Next.js 16+ (App Router)    |
+| Backend        | Python FastAPI              |
+| ORM            | SQLModel                    |
+| Database       | Neon Serverless PostgreSQL  |
+| Authentication | Better Auth                 |
+| Method         | Claude Code + Spec‑Kit Plus |
+
+---
+
+## 🤖 Agent Architecture
+
+Claude must work using **four dedicated agents**.
+
+---
+
+### 🔐 Auth‑Agent — Authentication Layer
+
+Responsible for **all authentication and authorization flows**.
+
+#### Responsibilities
+
+* Configure Better Auth in Next.js
+* Enable JWT plugin for token issuance
+* Implement signup and login flows
+* Hash passwords securely (bcrypt / argon2)
+* Issue JWT tokens on login
+* Configure token expiration and refresh
+* Store tokens in secure httpOnly cookies
+* Attach JWT to frontend API requests
+* Provide shared JWT secret configuration
+* Handle auth errors cleanly
+
+#### Required Environment
+
+```env
+BETTER_AUTH_SECRET=super-long-secure-secret
+```
+
+---
+
+### 🎨 Frontend‑Agent — Next.js UI Layer
+
+Responsible for **all frontend development** using Next.js App Router.
+
+#### Responsibilities
+
+* Build responsive UI (mobile‑first)
+* Create pages:
+  * `/` landing
+  * `/signup`
+  * `/login`
+  * `/dashboard` (protected)
+* Implement form validation
+* Build todo components
+* Integrate API client
+* Attach JWT token to headers
+* Handle loading and error states
+* Implement protected routing
+* Add accessibility support
+
+#### API Client Example
+
+```ts
+headers: {
+  Authorization: `Bearer ${token}`,
+  "Content-Type": "application/json",
+}
+```
+
+---
+
+### 🗄️ Database‑Agent — Neon + SQLModel
+
+Responsible for **database design and operations**.
+
+#### Responsibilities
+
+* Design schema for users and tasks
+* Configure Neon PostgreSQL
+* Implement SQLModel models
+* Create migrations
+* Add indexes
+* Enforce foreign keys
+* Handle constraints
+* Provide optimized queries
+
+#### Core Tables
+
+```sql
+users(id, email, password_hash, created_at)
+tasks(id, user_id, title, description, completed, created_at, updated_at)
+```
+
+---
+
+### ⚙️ Backend‑Agent — FastAPI Layer
+
+Responsible for **all REST API and business logic**.
+
+#### Responsibilities
+
+* Build RESTful endpoints
+* Implement JWT verification middleware
+* Extract user info from token
+* Validate user_id in URL
+* Filter queries by authenticated user
+* Implement CRUD logic
+* Configure CORS
+* Handle errors
+* Document API with OpenAPI
+
+---
+
+## 🔐 Authentication Architecture
+
+Better Auth runs on **Next.js**, while FastAPI runs separately. They communicate using **JWT tokens**.
+
+### Flow
+
+1. User logs in on frontend
+2. Better Auth validates credentials
+3. Better Auth issues JWT
+4. Frontend stores token securely
+5. Frontend sends requests with Authorization header
+6. Backend verifies JWT using shared secret
+7. Backend extracts user_id
+8. Backend ensures URL user_id matches token user_id
+9. Backend returns filtered data
+
+---
+
+## 🔑 Shared Secret Configuration
+
+Both services must use the same secret.
+
+### Frontend
+
+```env
+BETTER_AUTH_SECRET=your-secret
+NEXT_PUBLIC_API_URL=http://localhost:4000
+```
+
+### Backend
+
+```env
+BETTER_AUTH_SECRET=your-secret
+DATABASE_URL=postgresql://user:pass@neon/db
+CORS_ORIGINS=http://localhost:3000
+```
+
+---
+
+## 🌐 API Endpoints
+
+| Method | Endpoint                           | Description       |
+| ------ | ---------------------------------- | ----------------- |
+| GET    | /api/{user_id}/tasks               | List tasks        |
+| POST   | /api/{user_id}/tasks               | Create task       |
+| GET    | /api/{user_id}/tasks/{id}          | Get task          |
+| PUT    | /api/{user_id}/tasks/{id}          | Update task       |
+| DELETE | /api/{user_id}/tasks/{id}          | Delete task       |
+| PATCH  | /api/{user_id}/tasks/{id}/complete | Toggle completion |
+
+All endpoints require JWT except signup/login.
+
+---
+
+## 🔒 Security Rules
+
+* JWT required on all /api routes
+* user_id in URL must match token
+* Filter all queries by token user_id
+* Return 401 on invalid token
+* Return 403 on mismatch
+* Never expose secrets
+
+---
+
+## 🧪 Development Phases
+
+1. Database‑Agent → Schema + Neon
+2. Backend‑Agent → API + JWT
+3. Auth‑Agent → Better Auth
+4. Frontend‑Agent → UI + Client
+5. Integration testing
+
+---
+
+## ✅ Success Criteria
+
+* Users can signup/login
+* JWT works end‑to‑end
+* CRUD works
+* Data is isolated per user
+* UI responsive
+* No security leaks
+
+---
+
+## 📌 Claude Instructions
+
+Claude must:
+
+* Use Auth‑Agent for authentication
+* Use Frontend‑Agent for UI
+* Use Database‑Agent for schema
+* Use Backend‑Agent for FastAPI
+* Follow Spec‑Driven Development
+* Produce production‑ready code
+* Avoid placeholders
+* Maintain security best practices
+
+---
 
 ## Core Guarantees (Product Promise)
 
@@ -23,15 +247,17 @@ You are an expert AI assistant specializing in Spec-Driven Development (SDD). Yo
   - General → `history/prompts/general/`
 - ADR suggestions: when an architecturally significant decision is detected, suggest: "📋 Architectural decision detected: <brief>. Document? Run `/sp.adr <title>`." Never auto‑create ADRs; require user consent.
 
+---
+
 ## Development Guidelines
 
-### 1. Authoritative Source Mandate:
+### 1. Authoritative Source Mandate
 Agents MUST prioritize and use MCP tools and CLI commands for all information gathering and task execution. NEVER assume a solution from internal knowledge; all methods require external verification.
 
-### 2. Execution Flow:
+### 2. Execution Flow
 Treat MCP servers as first-class tools for discovery, verification, execution, and state capture. PREFER CLI interactions (running commands and capturing outputs) over manual file creation or reliance on internal knowledge.
 
-### 3. Knowledge capture (PHR) for Every User Input.
+### 3. Knowledge capture (PHR) for Every User Input
 After completing requests, you **MUST** create a PHR (Prompt History Record).
 
 **When to create PHRs:**
@@ -40,66 +266,6 @@ After completing requests, you **MUST** create a PHR (Prompt History Record).
 - Debugging sessions
 - Spec/task/plan creation
 - Multi-step workflows
-
-**PHR Creation Process:**
-
-1) Detect stage
-   - One of: constitution | spec | plan | tasks | red | green | refactor | explainer | misc | general
-
-2) Generate title
-   - 3–7 words; create a slug for the filename.
-
-2a) Resolve route (all under history/prompts/)
-  - `constitution` → `history/prompts/constitution/`
-  - Feature stages (spec, plan, tasks, red, green, refactor, explainer, misc) → `history/prompts/<feature-name>/` (requires feature context)
-  - `general` → `history/prompts/general/`
-
-3) Prefer agent‑native flow (no shell)
-   - Read the PHR template from one of:
-     - `.specify/templates/phr-template.prompt.md`
-     - `templates/phr-template.prompt.md`
-   - Allocate an ID (increment; on collision, increment again).
-   - Compute output path based on stage:
-     - Constitution → `history/prompts/constitution/<ID>-<slug>.constitution.prompt.md`
-     - Feature → `history/prompts/<feature-name>/<ID>-<slug>.<stage>.prompt.md`
-     - General → `history/prompts/general/<ID>-<slug>.general.prompt.md`
-   - Fill ALL placeholders in YAML and body:
-     - ID, TITLE, STAGE, DATE_ISO (YYYY‑MM‑DD), SURFACE="agent"
-     - MODEL (best known), FEATURE (or "none"), BRANCH, USER
-     - COMMAND (current command), LABELS (["topic1","topic2",...])
-     - LINKS: SPEC/TICKET/ADR/PR (URLs or "null")
-     - FILES_YAML: list created/modified files (one per line, " - ")
-     - TESTS_YAML: list tests run/added (one per line, " - ")
-     - PROMPT_TEXT: full user input (verbatim, not truncated)
-     - RESPONSE_TEXT: key assistant output (concise but representative)
-     - Any OUTCOME/EVALUATION fields required by the template
-   - Write the completed file with agent file tools (WriteFile/Edit).
-   - Confirm absolute path in output.
-
-4) Use sp.phr command file if present
-   - If `.**/commands/sp.phr.*` exists, follow its structure.
-   - If it references shell but Shell is unavailable, still perform step 3 with agent‑native tools.
-
-5) Shell fallback (only if step 3 is unavailable or fails, and Shell is permitted)
-   - Run: `.specify/scripts/bash/create-phr.sh --title "<title>" --stage <stage> [--feature <name>] --json`
-   - Then open/patch the created file to ensure all placeholders are filled and prompt/response are embedded.
-
-6) Routing (automatic, all under history/prompts/)
-   - Constitution → `history/prompts/constitution/`
-   - Feature stages → `history/prompts/<feature-name>/` (auto-detected from branch or explicit feature context)
-   - General → `history/prompts/general/`
-
-7) Post‑creation validations (must pass)
-   - No unresolved placeholders (e.g., `{{THIS}}`, `[THAT]`).
-   - Title, stage, and dates match front‑matter.
-   - PROMPT_TEXT is complete (not truncated).
-   - File exists at the expected path and is readable.
-   - Path matches route.
-
-8) Report
-   - Print: ID, path, stage, title.
-   - On any failure: warn but do not block the main command.
-   - Skip PHR only for `/sp.phr` itself.
 
 ### 4. Explicit ADR suggestions
 - When significant architectural decisions are made (typically during `/sp.plan` and sometimes `/sp.tasks`), run the three‑part test and suggest documenting with:
@@ -110,12 +276,15 @@ After completing requests, you **MUST** create a PHR (Prompt History Record).
 You are not expected to solve every problem autonomously. You MUST invoke the user for input when you encounter situations that require human judgment. Treat the user as a specialized tool for clarification and decision-making.
 
 **Invocation Triggers:**
-1.  **Ambiguous Requirements:** When user intent is unclear, ask 2-3 targeted clarifying questions before proceeding.
-2.  **Unforeseen Dependencies:** When discovering dependencies not mentioned in the spec, surface them and ask for prioritization.
-3.  **Architectural Uncertainty:** When multiple valid approaches exist with significant tradeoffs, present options and get user's preference.
-4.  **Completion Checkpoint:** After completing major milestones, summarize what was done and confirm next steps. 
+1. **Ambiguous Requirements:** When user intent is unclear, ask 2-3 targeted clarifying questions before proceeding.
+2. **Unforeseen Dependencies:** When discovering dependencies not mentioned in the spec, surface them and ask for prioritization.
+3. **Architectural Uncertainty:** When multiple valid approaches exist with significant tradeoffs, present options and get user's preference.
+4. **Completion Checkpoint:** After completing major milestones, summarize what was done and confirm next steps.
 
-## Default policies (must follow)
+---
+
+## Default Policies (Must Follow)
+
 - Clarify and plan first - keep business understanding separate from technical plan and carefully architect and implement.
 - Do not invent APIs, data, or contracts; ask targeted clarifiers if missing.
 - Never hardcode secrets or tokens; use `.env` and docs.
@@ -123,78 +292,7 @@ You are not expected to solve every problem autonomously. You MUST invoke the us
 - Cite existing code with code references (start:end:path); propose new code in fenced blocks.
 - Keep reasoning private; output only decisions, artifacts, and justifications.
 
-### Execution contract for every request
-1) Confirm surface and success criteria (one sentence).
-2) List constraints, invariants, non‑goals.
-3) Produce the artifact with acceptance checks inlined (checkboxes or tests where applicable).
-4) Add follow‑ups and risks (max 3 bullets).
-5) Create PHR in appropriate subdirectory under `history/prompts/` (constitution, feature-name, or general).
-6) If plan/tasks identified decisions that meet significance, surface ADR suggestion text as described above.
-
-### Minimum acceptance criteria
-- Clear, testable acceptance criteria included
-- Explicit error paths and constraints stated
-- Smallest viable change; no unrelated edits
-- Code references to modified/inspected files where relevant
-
-## Architect Guidelines (for planning)
-
-Instructions: As an expert architect, generate a detailed architectural plan for [Project Name]. Address each of the following thoroughly.
-
-1. Scope and Dependencies:
-   - In Scope: boundaries and key features.
-   - Out of Scope: explicitly excluded items.
-   - External Dependencies: systems/services/teams and ownership.
-
-2. Key Decisions and Rationale:
-   - Options Considered, Trade-offs, Rationale.
-   - Principles: measurable, reversible where possible, smallest viable change.
-
-3. Interfaces and API Contracts:
-   - Public APIs: Inputs, Outputs, Errors.
-   - Versioning Strategy.
-   - Idempotency, Timeouts, Retries.
-   - Error Taxonomy with status codes.
-
-4. Non-Functional Requirements (NFRs) and Budgets:
-   - Performance: p95 latency, throughput, resource caps.
-   - Reliability: SLOs, error budgets, degradation strategy.
-   - Security: AuthN/AuthZ, data handling, secrets, auditing.
-   - Cost: unit economics.
-
-5. Data Management and Migration:
-   - Source of Truth, Schema Evolution, Migration and Rollback, Data Retention.
-
-6. Operational Readiness:
-   - Observability: logs, metrics, traces.
-   - Alerting: thresholds and on-call owners.
-   - Runbooks for common tasks.
-   - Deployment and Rollback strategies.
-   - Feature Flags and compatibility.
-
-7. Risk Analysis and Mitigation:
-   - Top 3 Risks, blast radius, kill switches/guardrails.
-
-8. Evaluation and Validation:
-   - Definition of Done (tests, scans).
-   - Output Validation for format/requirements/safety.
-
-9. Architectural Decision Record (ADR):
-   - For each significant decision, create an ADR and link it.
-
-### Architecture Decision Records (ADR) - Intelligent Suggestion
-
-After design/architecture work, test for ADR significance:
-
-- Impact: long-term consequences? (e.g., framework, data model, API, security, platform)
-- Alternatives: multiple viable options considered?
-- Scope: cross‑cutting and influences system design?
-
-If ALL true, suggest:
-📋 Architectural decision detected: [brief-description]
-   Document reasoning and tradeoffs? Run `/sp.adr [decision-title]`
-
-Wait for consent; never auto-create ADRs. Group related decisions (stacks, authentication, deployment) into one ADR when appropriate.
+---
 
 ## Basic Project Structure
 
@@ -206,5 +304,8 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 - `history/adr/` — Architecture Decision Records
 - `.specify/` — SpecKit Plus templates and scripts
 
+---
+
 ## Code Standards
+
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
