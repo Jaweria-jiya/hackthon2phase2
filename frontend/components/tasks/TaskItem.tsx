@@ -28,7 +28,7 @@ export default function TaskItem({
     try {
       await onToggleComplete(task.id)
     } catch (error) {
-      console.error('Failed to toggle task:', error)
+      // Error handled by parent component
     }
   }
 
@@ -39,7 +39,7 @@ export default function TaskItem({
     try {
       await onDelete(task.id)
     } catch (error) {
-      console.error('Failed to delete task:', error)
+      // Error handled by parent component
       setIsDeleting(false)
     }
   }
@@ -56,7 +56,7 @@ export default function TaskItem({
       await onUpdate(task.id, editTitle.trim())
       setIsEditing(false)
     } catch (error) {
-      console.error('Failed to update task:', error)
+      // Error handled by parent component
       setEditTitle(task.title)
     } finally {
       // Keep disabled for 500ms to prevent double-submit

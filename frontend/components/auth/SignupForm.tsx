@@ -60,10 +60,6 @@ export default function SignupForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    console.log('🚀 [SIGNUP] Form submitted')
-    console.log('📧 [SIGNUP] Email:', email)
-    console.log('🔄 [SIGNUP] Setting loading to true')
-
     setErrors({})
     setLoading(true)
 
@@ -72,7 +68,6 @@ export default function SignupForm() {
     const passwordError = validatePassword(password)
 
     if (emailError || passwordError) {
-      console.log('❌ [SIGNUP] Validation failed:', { emailError, passwordError })
       setErrors({
         email: emailError,
         password: passwordError,
@@ -83,14 +78,9 @@ export default function SignupForm() {
     }
 
     try {
-      console.log('📡 [SIGNUP] Sending request to:', `${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`)
-
       // ✅ ROBUST: Fetch with timeout and error handling
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => {
-        console.log('⏰ [SIGNUP] Request timeout!')
-        controller.abort()
-      }, 30000) // 30s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`,
@@ -105,51 +95,41 @@ export default function SignupForm() {
       )
 
       clearTimeout(timeoutId)
-      console.log('📥 [SIGNUP] Response received:', response.status, response.statusText)
 
       // ✅ ROBUST: Parse JSON safely
       let data
       try {
         data = await response.json()
-        console.log('📦 [SIGNUP] Response data:', data)
       } catch (parseError) {
-        console.error('❌ [SIGNUP] JSON parse error:', parseError)
         throw new Error('Invalid response from server')
       }
 
       // ✅ ROBUST: Handle all HTTP status codes
       if (response.status === 201) {
         // Success - redirect to signin
-        console.log('✅ [SIGNUP] Success! Redirecting to signin...')
         router.push('/signin?registered=true')
         return
       }
 
       if (response.status === 400) {
         // Email already registered
-        console.log('⚠️ [SIGNUP] 400 Bad Request:', data.detail)
         throw new Error(data.detail || 'Email already registered')
       }
 
       if (response.status === 422) {
         // Validation error
-        console.log('⚠️ [SIGNUP] 422 Validation Error:', data.detail)
         throw new Error(data.detail || 'Invalid input data')
       }
 
       if (response.status === 500 || response.status === 503) {
         // Server error
-        console.log('⚠️ [SIGNUP] Server error:', response.status)
         throw new Error('Server error. Please try again later.')
       }
 
       // Generic error for other status codes
-      console.log('⚠️ [SIGNUP] Unexpected status:', response.status)
       throw new Error(data.detail || 'Signup failed')
 
     } catch (err: any) {
-      console.error('❌ [SIGNUP] Error caught:', err.name, '-', err.message)
-
       // ✅ ROBUST: Handle different error types
       if (err.name === 'AbortError') {
         setErrors({ form: 'Request timeout. Please try again.' })
@@ -160,9 +140,7 @@ export default function SignupForm() {
       }
     } finally {
       // ✅ CRITICAL: Always reset loading state
-      console.log('🔄 [SIGNUP] Finally block: Resetting loading state')
       setLoading(false)
-      console.log('✅ [SIGNUP] Loading state reset complete')
     }
   }
 

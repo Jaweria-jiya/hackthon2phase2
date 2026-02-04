@@ -37,7 +37,7 @@ export default function AddTaskForm({
         setScheduledDate('')
       }
     } catch (error) {
-      console.error('Failed to add task:', error)
+      // Error handled by parent component
     } finally {
       setIsSubmitting(false)
       // Keep disabled for 800ms to prevent double-entry
